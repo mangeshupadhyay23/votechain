@@ -1,6 +1,7 @@
 import React from 'react';
 import Web3 from 'web3';
 import {Container, Form, Row, Col, Button} from 'react-bootstrap';
+import {VOTE_CHAIN_ABI, VOTE_CHAIN_ADDRESS} from '../../config';
 import Logo from '../../assets/party_logos/home.png'
 
 class Auth extends React.Component{
@@ -10,15 +11,31 @@ class Auth extends React.Component{
         width:"200px"
     }
 
+    constructor(props){
+        super(props)
+
+        this.state = {
+            voteCount: 0 
+        }
+    }
+
     componentDidMount=()=>{
         this.loadBlockchainData();
     }
 
     loadBlockchainData=async()=>{
-        const web3 = new Web3(Web3.givenProvider || "http://localhost:8545")
-        const network = await web3.eth.net.getNetworkType()
+        const web3 = new Web3(Web3.givenProvider || "http://localhost:7545")
+        // const network = await web3.eth.net.getNetworkType()
         const account = await web3.eth.getAccounts()
-        console.log(account)
+        const votechain = new web3.eth.Contract(VOTE_CHAIN_ABI, VOTE_CHAIN_ADDRESS)
+
+        this.setState({votechain,account});
+        console.log(this.state.votechain);
+        const voteCount = await this.state.votechain.methods.votecount().call()
+        const vote = await this.state.votechain.methods.votes(2).call()
+        console.log(voteCount);
+        console.log(vote[1]);
+        
     }
     submitHandler=(e)=>{
         e.preventDefault();
