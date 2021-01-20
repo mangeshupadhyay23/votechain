@@ -15,12 +15,13 @@ class Auth extends React.Component{
         super(props)
 
         this.state = {
-            voteCount: 0 
+            votes:[]
         }
     }
 
-    componentDidMount=()=>{
-        this.loadBlockchainData();
+    componentDidMount= async ()=>{
+        await this.loadBlockchainData();
+        await this.fetchVotes();
     }
 
     loadBlockchainData=async()=>{
@@ -30,13 +31,29 @@ class Auth extends React.Component{
         const votechain = new web3.eth.Contract(VOTE_CHAIN_ABI, VOTE_CHAIN_ADDRESS)
 
         this.setState({votechain,account});
-        console.log(this.state.votechain);
+
         const voteCount = await this.state.votechain.methods.votecount().call()
-        const vote = await this.state.votechain.methods.votes(2).call()
-        console.log(voteCount);
-        console.log(vote[1]);
-        
+        this.setState({voteCount})
     }
+
+    fetchVotes= async()=>{
+        const votes=[]
+        for(var i=1; i<=this.state.voteCount; i++){
+            const vote = await this.state.votechain.methods.votes(i).call();
+            votes.push(vote);
+        }
+        this.setState({votes: [...votes]})
+    }
+
+    castVote = (e)=>{
+        e.preventDefault();
+        console.log(this.state.account[0])
+        this.state.votechain.methods.castVote('Shivsena').send({from : this.state.account[0]})
+        .once('receipt',async (receipt)=>{
+            this.fetchVotes()
+        });
+    }
+
     submitHandler=(e)=>{
         e.preventDefault();
         if(document.getElementById("aadharNumber").value.length===12){
@@ -54,7 +71,7 @@ class Auth extends React.Component{
                 <Row>
                     <Col></Col>
                     <Col xs={6}>
-                        <Form onSubmit={this.submitHandler}>
+                        {/* <Form onSubmit={this.submitHandler}>
                             <Form.Group >
                                 <Form.Label style={{float:"left"}}>Aadhar No. (12 digit aadhar no)</Form.Label>
                                 <Form.Control type="number" id="aadharNumber" placeholder="12-digit aadhar no" required/>
@@ -62,7 +79,29 @@ class Auth extends React.Component{
                             <Button variant="primary" type="submit">
                                 Submit
                             </Button>
+                        </Form> */}
+                        <Form onSubmit={this.castVote}>
+                            <Form.Group >
+                                <Form.Label style={{float:"left"}}>Party Name</Form.Label>
+                                <Form.Control type="number" id="aadharNumber" placeholder="12-digit aadhar no" required/>
+                            </Form.Group>
+                            <Button variant="primary" type="submit">
+                                Submit
+                            </Button>
                         </Form>
+                        
+                        <div>
+                            {
+                                this.state.votes.map((vote,key)=>{
+                                    return(
+                                        <div key={key}>
+                                            <p>Voter ID: {vote[0]}</p>
+                                            <p>Party: {vote[1]}</p>    
+                                        </div>
+                                    )                     
+                                })
+                            }
+                        </div>
                     </Col>
                     <Col></Col>
                 </Row>

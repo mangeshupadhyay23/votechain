@@ -11,6 +11,11 @@ contract Votechain {
 
     mapping(uint => Vote) public votes;
 
+    event VoteCasted(
+        uint voter_id,
+        string party
+    );
+
     constructor() public {
         castVote("Bhartiya Janta Party");
         castVote("Indian National Congress");
@@ -19,5 +24,7 @@ contract Votechain {
     function castVote(string memory _party) public {
         votecount++;
         votes[votecount] = Vote(votecount, _party);
+
+        emit VoteCasted(votecount, _party);
     }
 }
